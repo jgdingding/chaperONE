@@ -3,6 +3,10 @@ import { PieChart } from "react-minimal-pie-chart";
 import "../styles/Budget.css";
 
 class Budget extends React.Component {
+  constructor(props) {
+    super(props);
+  }
+
   render() {
     return (
       <div className="wrapper">

@@ -1,16 +1,15 @@
-import React from "react";
-// import logo from "../logo.svg";
-import "../styles/App.css";
-import Popup from "./Popup";
+import React from 'react';
+import logo from './logo.svg';
+import '../styles/App.css';
 
 function App() {
-  return <Popup></Popup>;
-}
 
-export default App;
+  function testAction () {
+    console.log("test action clicked");
+  }
 
-/*
-<div className="App">
+  return (
+    <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
         <p>
@@ -27,4 +26,7 @@ export default App;
       </header>
       <button onClick={testAction}>Perform test action</button>
     </div>
-*/
+  );
+}
+
+export default App;
