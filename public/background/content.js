@@ -1,23 +1,53 @@
 let load = function () {
-  chrome.storage.sync.get(["firstName"], function (data) {
-    alert("loading settings for firstName=" + data.firstName);
+  // keys: ["firstName", "lastName", "customerID", "budgetCap", "balance"],
+  chrome.storage.sync.get(["budgetCap", "balance"], function (data) {
+    const budgetCap = data.budgetCap;
+    const balance = data.balance;
+    // const budgetCap = 100;
+    // const balance = 50;
+    alert("loaded settings: budgetCap=" + budgetCap + ", balance=" + balance);
+
+    if (window.location.href.includes("/s?")) {
+      // alert("window.onload: search page");
+      showSearchData(balance, budgetCap);
+    } else {
+      // alert("window.onload: item page");
+      showItemData(balance, budgetCap);
+    }
   });
-
-  const budget = 200;
-  const highlightPercent = 35;
-
-  if (window.location.href.includes("/s?")) {
-    // alert("window.onload: search page");
-    showSearchData(budget, highlightPercent);
-  } else {
-    // alert("window.onload: item page");
-    showItemData(budget, highlightPercent);
-  }
 };
 window.onload = load;
 // load();
 
+function getElementByXpath(path) {
+  return document.evaluate(
+    path,
+    document,
+    null,
+    XPathResult.FIRST_ORDERED_NODE_TYPE,
+    null
+  ).singleNodeValue;
+}
+
 // ============= functions for Search page =============
+
+function addExtensionNotifier() {
+  // let n = document.getElementsByClassName("a-size-base a-color-base a-text-normal");
+  let n = getElementByXpath(
+    "/html/body/div[1]/div[2]/div[1]/div/div[1]/div/span[3]/div[2]/div[2]/span/div/div/h1/span"
+  );
+  if (n !== undefined) {
+    let notifier = document.createElement("p");
+    notifier.innerText = "You are currently using ChaperONE!";
+    notifier.style.padding = "12px";
+    notifier.style.margin = "8px";
+    notifier.style.backgroundColor = "rgba(201, 66, 127, 0.23";
+    notifier.style.borderRadius = "10px";
+    notifier.style.fontSize = "20px";
+
+    n.parentElement.appendChild(notifier);
+  }
+}
 
 function getPriceSearch(priceParentNode) {
   // let n = priceParentNode.children[1].children[1];
@@ -27,47 +57,46 @@ function getPriceSearch(priceParentNode) {
   return parseFloat(nText.substring(1));
 }
 
-function showSearchData(budget, highlightPercent) {
-  let warningElementSearch = document.createElement("p");
-  warningElementSearch.innerText = "Text for a search result";
-  warningElementSearch.style.fontSize = "20px";
-  warningElementSearch.style.background = "purple";
+function showSearchData(balance, budgetCap) {
+  addExtensionNotifier();
 
-  document.body.appendChild(warningElementSearch);
-  // let resultClass = "s-result-item";
-  // let resultClass = "sg-col-inner";
   let resultClass = "a-price";
   let results = document.getElementsByClassName(resultClass);
-  // alert("looping through " + results.length + "items");
 
   for (let i = 0; i < results.length; i++) {
     let result = results[i];
     if (result.classList.contains("a-text-price")) {
-      // This element describes a price that is wrong because of a sale
-      continue;
+      continue; // This element describes a price that is wrong because of a sale
     }
-    // result.parentElement.parentElement.parentElement.parentElement.appendChild(warningElementSearch);
 
-    // result.style.background = "pink";
     let price = getPriceSearch(result);
-    let percent = (price / budget) * 100;
-    if (percent > highlightPercent) {
+    // let percent = (price / budget) * 100;
+    if (price >= balance) {
+      let someParent =
+        result.parentElement.parentElement.parentElement.parentElement
+          .parentElement;
+      someParent.style.backgroundColor = "rgba(250, 160, 60, 0.4)"; // background color of the card
+      someParent.style.borderRadius = "10px";
       result.style.background = "orange";
-      result.parentElement.parentElement.parentElement.parentElement.parentElement.style.backgroundColor =
-        "rgba(250, 160, 60, 50)"; // background color of the card
     } else {
-      result.style.background = "green";
+      result.style.background = "rgba(20, 190, 90, 0.5)";
     }
+    result.style.padding = "6px";
+    result.style.borderRadius = "10px";
     // Other ways to show price information: change the search result image, add an image overlay, add warning text
   }
 }
 
 // ============= functions for Item page =============
 
+function disableCheckoutButton() {
+  let b = document.getElementById("submit.add-to-cart");
+  b.style.display = "none";
+}
+
 function getPriceItem(priceString) {
   if (priceString.includes(" - ")) {
-    // The user hasn't selected a specific item, so a range of prices is displayed.
-    // Assume the highest price?
+    // The user hasn't selected a specific item, so a range of prices is displayed. Assume the highest price?
     return parseFloat(priceString.split(" - ")[1].substring(1));
   } else {
     // There's only once price displayed
@@ -75,9 +104,11 @@ function getPriceItem(priceString) {
   }
 }
 
-function showItemData(budget, highlightPercent) {
+function showItemData(balance, budgetCap) {
   let warningElementItem = document.createElement("p");
   warningElementItem.style.fontSize = "20px";
+  warningElementItem.style.padding = "6px";
+  warningElementItem.style.borderRadius = "10px";
 
   let resultId = "priceblock_ourprice";
   let result = document.getElementById(resultId);
@@ -85,22 +116,32 @@ function showItemData(budget, highlightPercent) {
     return;
   }
 
-  result.style.background = "pink";
   let price = getPriceItem(result.innerText);
-  let percent = (price / budget) * 100;
-  if (percent > highlightPercent) {
-    // result.style.background = "pink";
+  let percentOfBalance = (price / balance) * 100;
+  let warningString = "";
+
+  result.style.background = "pink";
+  result.style.padding = "6px";
+  result.style.borderRadius = "10px";
+  if (price >= balance) {
+    disableCheckoutButton();
+    warningString =
+      "Watch out! At $" +
+      price +
+      ", this item is " +
+      Math.floor(percentOfBalance) +
+      "% of your remaining balance. I think you should consider another option.";
     warningElementItem.style.background = "orange";
   } else {
-    // result.style.background = "rgb(0, 0, 100)";
-    warningElementItem.style.background = "rgba(0, 200, 0, 100)";
+    warningString =
+      "At $" +
+      price +
+      ", this item is only " +
+      Math.floor(percentOfBalance) +
+      "% of your remaining balance. You're all good!";
+    warningElementItem.style.background = "rgba(0, 200, 50, 0.4)";
   }
-  warningElementItem.innerText =
-    "At $" +
-    price +
-    ", this item is " +
-    Math.floor(percent) +
-    "% of your budget.";
+  warningElementItem.innerText = warningString;
 
   result.parentElement.parentElement.parentElement.parentElement.parentElement.appendChild(
     warningElementItem

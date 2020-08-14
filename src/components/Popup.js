@@ -7,40 +7,94 @@ import SetBudget from "./SetBudget";
 class Popup extends React.Component {
   constructor() {
     super();
-    this.state = {};
+    chrome.storage.sync
+      .get(
+        ["firstName", "lastName", "customerID", "budgetCap", "balance"],
+        function (data) {
+          const { firstName, lastName, customerID, budgetCap, balance } = data;
+          console.log(firstName, lastName, customerID, budgetCap, balance);
+          if (firstName && lastName && customerID && budgetCap && balance) {
+            this.setState({
+              stage: "Budget",
+              budgetCap: budgetCap,
+              customerInfo: {
+                firstName: firstName,
+                lastName: lastName,
+                customerID: customerID,
+              },
+              balance: balance,
+            });
+            //   console.log(this.state.stage);
+          } else {
+            this.setState({
+              stage: "Login",
+              budgetCap: 0,
+              customerInfo: {},
+              balance: 0,
+            });
+          }
+        }
+      )
+      .bind(this);
+    console.log(this.state.stage);
     // this.init();
   }
 
+  //   callback = (data) => {
+  //     const { firstName, lastName, customerID, budgetCap, balance } = data;
+  //     console.log(firstName, lastName, customerID, budgetCap, balance);
+  //     if (firstName && lastName && customerID && budgetCap && balance) {
+  //       this.setState({
+  //         stage: "Budget",
+  //         budgetCap: budgetCap,
+  //         customerInfo: {
+  //           firstName: firstName,
+  //           lastName: lastName,
+  //           customerID: customerID,
+  //         },
+  //         balance: balance,
+  //       });
+  //       //   console.log(this.state.stage);
+  //     } else {
+  //       this.setState({
+  //         stage: "Login",
+  //         budgetCap: 0,
+  //         customerInfo: {},
+  //         balance: 0,
+  //       });
+  //     }
+  //   };
+
   async componentDidMount() {
-    let temp = {};
-    await chrome.storage.sync.get(
-      ["firstName", "lastName", "customerID", "budgetCap", "balance"],
-      function (data) {
-        const { firstName, lastName, customerID, budCap, bal } = data;
-        console.log(firstName && lastName && customerID && budCap && bal);
-        if (firstName && lastName && customerID && budCap && bal) {
-          temp = {
-            stage: "Budget",
-            budgetCap: budCap,
-            customerInfo: {
-              firstName: firstName,
-              lastName: lastName,
-              customerID: customerID,
-            },
-            balance: bal,
-          };
-          console.log(this.state.stage);
-        } else {
-          temp = {
-            stage: "Login",
-            budgetCap: 0,
-            customerInfo: {},
-            balance: 0,
-          };
-        }
-      }
-    );
-    this.setState(temp);
+    // let temp = {};
+    // await chrome.storage.sync.get(
+    //   ["firstName", "lastName", "customerID", "budgetCap", "balance"],
+    //   function (data) {
+    //     const { firstName, lastName, customerID, budCap, bal } = data;
+    //     console.log(firstName && lastName && customerID && budCap && bal);
+    //     if (firstName && lastName && customerID && budCap && bal) {
+    //       temp = {
+    //         stage: "Budget",
+    //         budgetCap: budCap,
+    //         customerInfo: {
+    //           firstName: firstName,
+    //           lastName: lastName,
+    //           customerID: customerID,
+    //         },
+    //         balance: bal,
+    //       };
+    //       console.log(this.state.stage);
+    //     } else {
+    //       temp = {
+    //         stage: "Login",
+    //         budgetCap: 0,
+    //         customerInfo: {},
+    //         balance: 0,
+    //       };
+    //     }
+    //   }
+    // );
+    // this.setState(temp);
   }
 
   handleLogin(firstName, lastName, customerID) {
@@ -55,9 +109,15 @@ class Popup extends React.Component {
   }
 
   saveBudget(value) {
+    const budCap = "budgetCap";
+    const bal = "balance";
     this.setState({ stage: "Budget", budgetCap: value, balance: value });
-    chrome.storage.sync.set({ budgetCap: value });
-    chrome.storage.sync.set({ balance: value });
+    chrome.storage.sync.set({ budCap: value }, function () {
+      console.log("Budget cap is: " + value);
+    });
+    chrome.storage.sync.set({ bal: value }, function () {
+      console.log("Balance is: " + value);
+    });
   }
 
   editBudget() {
