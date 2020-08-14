@@ -1,6 +1,8 @@
 import React from "react";
-import { PieChart } from "react-minimal-pie-chart";
 import "../styles/Budget.css";
+import { CircularProgressbar } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+import Button from "react-bootstrap/Button";
 
 class Budget extends React.Component {
   constructor(props) {
@@ -8,17 +10,14 @@ class Budget extends React.Component {
   }
 
   render() {
+    const percent = 100 * (this.props.balance / this.props.budgetCap);
     return (
       <div className="wrapper">
-        <PieChart
-          data={[
-            { title: "One", value: 10, color: "#E38627" },
-            { title: "Two", value: 15, color: "#C13C37" },
-            { title: "Three", value: 20, color: "#6A2135" },
-          ]}
-          label={({ dataEntry }) => `${Math.round(dataEntry.percentage)} %`}
-          animate
-        />
+        <h4>
+          ${this.props.balance} of ${this.props.budgetCap} remaining
+        </h4>
+        <CircularProgressbar value={percent} text={Math.round(percent) + "%"} />
+        <Button onClick={() => this.props.editBudget}>Change Budget</Button>
       </div>
     );
   }

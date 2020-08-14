@@ -1,3 +1,4 @@
+/* global chrome */
 import React from "react";
 import Login from "./Login";
 import Budget from "./Budget";
@@ -6,7 +7,40 @@ import SetBudget from "./SetBudget";
 class Popup extends React.Component {
   constructor() {
     super();
-    this.state = { stage: "Login", budgetCap: 0, customerInfo: {} };
+    this.state = {};
+    // this.init();
+  }
+
+  async componentDidMount() {
+    let temp = {};
+    await chrome.storage.sync.get(
+      ["firstName", "lastName", "customerID", "budgetCap", "balance"],
+      function (data) {
+        const { firstName, lastName, customerID, budCap, bal } = data;
+        console.log(firstName && lastName && customerID && budCap && bal);
+        if (firstName && lastName && customerID && budCap && bal) {
+          temp = {
+            stage: "Budget",
+            budgetCap: budCap,
+            customerInfo: {
+              firstName: firstName,
+              lastName: lastName,
+              customerID: customerID,
+            },
+            balance: bal,
+          };
+          console.log(this.state.stage);
+        } else {
+          temp = {
+            stage: "Login",
+            budgetCap: 0,
+            customerInfo: {},
+            balance: 0,
+          };
+        }
+      }
+    );
+    this.setState(temp);
   }
 
   handleLogin(firstName, lastName, customerID) {
@@ -21,7 +55,9 @@ class Popup extends React.Component {
   }
 
   saveBudget(value) {
-    this.setState({ stage: "Budget", budgetCap: value });
+    this.setState({ stage: "Budget", budgetCap: value, balance: value });
+    chrome.storage.sync.set({ budgetCap: value });
+    chrome.storage.sync.set({ balance: value });
   }
 
   editBudget() {
@@ -38,7 +74,13 @@ class Popup extends React.Component {
             case "SetBudget":
               return <SetBudget saveBudget={this.saveBudget.bind(this)} />;
             case "Budget":
-              return <Budget editBudget={this.editBudget.bind(this)} />;
+              return (
+                <Budget
+                  editBudget={this.editBudget.bind(this)}
+                  budgetCap={this.state.budgetCap}
+                  balance={this.state.balance}
+                />
+              );
             default:
               return <p> Something failed! Please restart extension. </p>;
           }

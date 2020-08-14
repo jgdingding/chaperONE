@@ -1,22 +1,39 @@
-window.onload = function () {
-  if (window.location.href.includes("/s?k")) {
-    alert("window.onload: search page");
-    showSearchData();
+let load = function () {
+  chrome.storage.sync.get(["firstName"], function (data) {
+    alert("loading settings for firstName=" + data.firstName);
+  });
+
+  const budget = 200;
+  const highlightPercent = 35;
+
+  if (window.location.href.includes("/s?")) {
+    // alert("window.onload: search page");
+    showSearchData(budget, highlightPercent);
   } else {
-    alert("window.onload: item page");
-    showItemData();
+    // alert("window.onload: item page");
+    showItemData(budget, highlightPercent);
   }
 };
+window.onload = load;
+// load();
 
 // ============= functions for Search page =============
 
 function getPriceSearch(priceParentNode) {
-  let n = priceParentNode.children[1].children[1];
-  let nText = n.innerText;
-  return parseInt(n.innerText.substring(0, nText.length - 2));
+  // let n = priceParentNode.children[1].children[1];
+  // let nText = n.innerText;
+  let nText = priceParentNode.children[1].innerText;
+  // return parseInt(n.innerText.substring(0, nText.length - 2));
+  return parseFloat(nText.substring(1));
 }
 
-function showSearchData() {
+function showSearchData(budget, highlightPercent) {
+  let warningElementSearch = document.createElement("p");
+  warningElementSearch.innerText = "Text for a search result";
+  warningElementSearch.style.fontSize = "20px";
+  warningElementSearch.style.background = "purple";
+
+  document.body.appendChild(warningElementSearch);
   // let resultClass = "s-result-item";
   // let resultClass = "sg-col-inner";
   let resultClass = "a-price";
@@ -29,11 +46,15 @@ function showSearchData() {
       // This element describes a price that is wrong because of a sale
       continue;
     }
+    // result.parentElement.parentElement.parentElement.parentElement.appendChild(warningElementSearch);
 
     // result.style.background = "pink";
     let price = getPriceSearch(result);
-    if (price > 40) {
+    let percent = (price / budget) * 100;
+    if (percent > highlightPercent) {
       result.style.background = "orange";
+      result.parentElement.parentElement.parentElement.parentElement.parentElement.style.backgroundColor =
+        "rgba(250, 160, 60, 50)"; // background color of the card
     } else {
       result.style.background = "green";
     }
@@ -42,11 +63,6 @@ function showSearchData() {
 }
 
 // ============= functions for Item page =============
-
-var warningElement = document.createElement("p");
-// warningElement.innerText = "Warning: if you buy this item, you'll be broke";
-warningElement.style.fontSize = "20px";
-warningElement.style.background = "orange";
 
 function getPriceItem(priceString) {
   if (priceString.includes(" - ")) {
@@ -59,7 +75,10 @@ function getPriceItem(priceString) {
   }
 }
 
-function showItemData() {
+function showItemData(budget, highlightPercent) {
+  let warningElementItem = document.createElement("p");
+  warningElementItem.style.fontSize = "20px";
+
   let resultId = "priceblock_ourprice";
   let result = document.getElementById(resultId);
   if (result === null) {
@@ -67,17 +86,23 @@ function showItemData() {
   }
 
   result.style.background = "pink";
-  warningElement.innerText =
-    "Watch out: if you buy this item, you'll be broke because it costs $" +
-    getPriceItem(result.innerText);
-  // let price = getPriceNode(result);
-  // if(price > 40) {
-  //     result.style.background = "orange";
-  // } else {
-  //     result.style.background = "green";
-  // }
+  let price = getPriceItem(result.innerText);
+  let percent = (price / budget) * 100;
+  if (percent > highlightPercent) {
+    // result.style.background = "pink";
+    warningElementItem.style.background = "orange";
+  } else {
+    // result.style.background = "rgb(0, 0, 100)";
+    warningElementItem.style.background = "rgba(0, 200, 0, 100)";
+  }
+  warningElementItem.innerText =
+    "At $" +
+    price +
+    ", this item is " +
+    Math.floor(percent) +
+    "% of your budget.";
 
   result.parentElement.parentElement.parentElement.parentElement.parentElement.appendChild(
-    warningElement
+    warningElementItem
   );
 }

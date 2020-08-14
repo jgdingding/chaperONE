@@ -21,13 +21,13 @@ class SetBudget extends React.Component {
     return (
       <div>
         <input
-          classname="budvalue"
+          name="value"
           type="number"
           min="0"
           value={this.state.value}
           onChange={this.handleChange}
         ></input>
-        <Button onclick={() => this.saveBudget()}>Save Budget</Button>
+        <Button onClick={() => this.saveBudget()}>Save Budget</Button>
       </div>
     );
   }

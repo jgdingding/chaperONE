@@ -1,8 +1,10 @@
+/* global chrome */
 import React from "react";
 import "../styles/Login.css";
 import Button from "react-bootstrap/Button";
 import Col from "react-bootstrap/Col";
 import Container from "react-bootstrap/Container";
+import { confirmLogin } from "../scripts/Backend-Login";
 
 class Login extends React.Component {
   constructor(props) {
@@ -26,9 +28,22 @@ class Login extends React.Component {
         });
   }
 
-  handleLogin() {
+  async handleLogin() {
     const { firstName, lastName, customerID } = this.state;
-    this.props.handleLogin(firstName, lastName, customerID);
+
+    let confirm = await confirmLogin(firstName, lastName, customerID);
+    if (confirm) {
+      this.props.handleLogin(firstName, lastName, customerID);
+      chrome.storage.sync.set({ customerID: customerID });
+      chrome.storage.sync.set({ firstName: firstName });
+      chrome.storage.sync.set({ lastName: lastName });
+    } else {
+      this.setState({
+        firstName: "",
+        lastName: "",
+        customerID: "",
+      });
+    }
   }
 
   render() {
