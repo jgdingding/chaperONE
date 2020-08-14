@@ -21,25 +21,22 @@ class Login extends React.Component {
     const { name, value, type, checked } = event.target;
     type === "checkbox"
       ? this.setState({
-          [name]: checked,
-        })
+        [name]: checked,
+      })
       : this.setState({
-          [name]: value,
-        });
+        [name]: value,
+      });
   }
 
   async handleLogin() {
     const { firstName, lastName, customerID } = this.state;
 
-    const custID = "customerID";
-    const fName = "firstName";
-    const lName = "lastName";
     let confirm = await confirmLogin(firstName, lastName, customerID);
     if (confirm) {
       this.props.handleLogin(firstName, lastName, customerID);
-      chrome.storage.sync.set({ custID: customerID });
-      chrome.storage.sync.set({ fName: firstName });
-      chrome.storage.sync.set({ lName: lastName });
+      chrome.storage.sync.set({ "customerID": customerID });
+      chrome.storage.sync.set({ "firstName": firstName });
+      chrome.storage.sync.set({ "lastName": lastName });
     } else {
       this.setState({
         firstName: "",

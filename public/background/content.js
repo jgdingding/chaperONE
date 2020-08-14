@@ -4,8 +4,8 @@ let load = function () {
     const budgetCap = data.budgetCap;
     const balance = data.balance;
     // const budgetCap = 100;
-    // const balance = 50;
-    alert("loaded settings: budgetCap=" + budgetCap + ", balance=" + balance);
+    // const balance = 51;
+    // alert("loaded settings: budgetCap=" + budgetCap + ", balance=" + balance);
 
     if (window.location.href.includes("/s?")) {
       // alert("window.onload: search page");
@@ -17,7 +17,7 @@ let load = function () {
   });
 };
 window.onload = load;
-// load();
+setInterval(load, 3000);
 
 function getElementByXpath(path) {
   return document.evaluate(
@@ -32,12 +32,12 @@ function getElementByXpath(path) {
 // ============= functions for Search page =============
 
 function addExtensionNotifier() {
-  // let n = document.getElementsByClassName("a-size-base a-color-base a-text-normal");
   let n = getElementByXpath(
     "/html/body/div[1]/div[2]/div[1]/div/div[1]/div/span[3]/div[2]/div[2]/span/div/div/h1/span"
   );
   if (n !== undefined) {
     let notifier = document.createElement("p");
+    notifier.id = "notifiedId";
     notifier.innerText = "You are currently using ChaperONE!";
     notifier.style.padding = "12px";
     notifier.style.margin = "8px";
@@ -58,6 +58,8 @@ function getPriceSearch(priceParentNode) {
 }
 
 function showSearchData(balance, budgetCap) {
+  if (document.getElementById("notifiedId"))
+    return;
   addExtensionNotifier();
 
   let resultClass = "a-price";
@@ -73,8 +75,7 @@ function showSearchData(balance, budgetCap) {
     // let percent = (price / budget) * 100;
     if (price >= balance) {
       let someParent =
-        result.parentElement.parentElement.parentElement.parentElement
-          .parentElement;
+        result.parentElement.parentElement.parentElement.parentElement.parentElement;
       someParent.style.backgroundColor = "rgba(250, 160, 60, 0.4)"; // background color of the card
       someParent.style.borderRadius = "10px";
       result.style.background = "orange";
@@ -106,12 +107,17 @@ function getPriceItem(priceString) {
 
 function showItemData(balance, budgetCap) {
   let warningElementItem = document.createElement("p");
+  warningElementItem.id = "warningElementItem";
   warningElementItem.style.fontSize = "20px";
   warningElementItem.style.padding = "6px";
   warningElementItem.style.borderRadius = "10px";
+  if (document.getElementById("warningElementItem"))
+    return;
 
-  let resultId = "priceblock_ourprice";
-  let result = document.getElementById(resultId);
+  let result = document.getElementById("priceblock_ourprice");
+  if (result === null) {
+    result = document.getElementById("priceblock_saleprice");
+  }
   if (result === null) {
     return;
   }
@@ -142,7 +148,6 @@ function showItemData(balance, budgetCap) {
     warningElementItem.style.background = "rgba(0, 200, 50, 0.4)";
   }
   warningElementItem.innerText = warningString;
-
   result.parentElement.parentElement.parentElement.parentElement.parentElement.appendChild(
     warningElementItem
   );

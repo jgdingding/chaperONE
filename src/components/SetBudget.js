@@ -5,7 +5,7 @@ import Button from "react-bootstrap/Button";
 class SetBudget extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { value: 0 };
+    this.state = { value: this.props.budgetCap };
     this.handleChange = this.handleChange.bind(this);
   }
 

@@ -17,7 +17,7 @@ class Budget extends React.Component {
           ${this.props.balance} of ${this.props.budgetCap} remaining
         </h4>
         <CircularProgressbar value={percent} text={Math.round(percent) + "%"} />
-        <Button onClick={() => this.props.editBudget}>Change Budget</Button>
+        <Button onClick={this.props.editBudget}>Change Budget</Button>
       </div>
     );
   }
